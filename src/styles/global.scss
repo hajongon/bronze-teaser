@@ -1,0 +1,41 @@
+@use './reset';
+@use './color' as C;
+@use './utils' as U;
+
+html {
+  @font-face {
+    font-family: 'IyagiGGC';
+    src: url('../fonts/IyagiGGC.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  font-family:
+    'IyagiGGC',
+    Pretendard Variable,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    'Helvetica Neue',
+    'Segoe UI',
+    'Apple SD Gothic Neo',
+    'Noto Sans KR',
+    'Malgun Gothic',
+    sans-serif;
+  font-weight: 400;
+  font-size: 62.5%; // 이것은 기본 HTML 폰트 크기를 10px로 설정합니다 (16px * 62.5% = 10px).
+  line-height: 1.5;
+}
+
+body {
+  font-family: 'IyagiGGC', sans-serif;
+  margin: 0 auto;
+  font-size: 1.6rem;
+  color: C.$gray900;
+  background: C.$main;
+}
+
+#root {
+  position: relative;
+  height: 100%;
+}
