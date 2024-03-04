@@ -31,6 +31,7 @@ function Home() {
 
     for (let y = 0; y < words.length; y++) {
       // 예: 모든 단어를 같은 X좌표에 배치하고 Y좌표만 증가시킵니다.
+      // 요소 하나하나마다 원하는 position을 push해주면 됨 -> 이러면 끝
       positions.push({ x: 10, y: y * 3 })
     }
     return positions.sort(() => Math.random() - 0.5) // 위치를 무작위로 섞음
