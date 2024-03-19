@@ -1,6 +1,7 @@
 import { useState, useEffect, KeyboardEvent } from 'react'
 import styles from './Home.module.scss'
 import { words } from '../data/words'
+import { BsXLg } from 'react-icons/bs'
 
 // 단어 객체의 타입 정의
 interface WordObject {
@@ -34,43 +35,65 @@ function Home() {
     //   // 요소 하나하나마다 원하는 position을 push해주면 됨 -> 이러면 끝
     //   positions.push({ x: 10, y: y })
     // }
-    positions.push({ x: 10, y: 0 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    positions.push({ x: 18, y: 1 })
-    return positions // 위치를 무작위로 섞음
+    // positions.push({ x: 10, y: 0 })
+    // positions.push({ x: 18, y: 1 })
+    // positions.push({ x: 18, y: 2 })
+    // positions.push({ x: 18, y: 3 })
+    // positions.push({ x: 18, y: 4 })
+    // positions.push({ x: 18, y: 5 })
+    // positions.push({ x: 18, y: 6 })
+    // positions.push({ x: 18, y: 7 })
+    // positions.push({ x: 18, y: 8 })
+    // positions.push({ x: 18, y: 9 })
+    // positions.push({ x: 18, y: 10 })
+    // positions.push({ x: 18, y: 11 })
+    // positions.push({ x: 18, y: 12 })
+    // positions.push({ x: 18, y: 13 })
+    // positions.push({ x: 18, y: 14 })
+    // positions.push({ x: 18, y: 15 })
+    // positions.push({ x: 18, y: 16 })
+    // positions.push({ x: 18, y: 17 })
+    // positions.push({ x: 18, y: 18 })
+    // positions.push({ x: 18, y: 19 })
+    // positions.push({ x: 18, y: 20 })
+    // positions.push({ x: 18, y: 21 })
+    // positions.push({ x: 18, y: 22 })
+    // positions.push({ x: 18, y: 23 })
+    // positions.push({ x: 18, y: 24 })
+    // positions.push({ x: 18, y: 25 })
+    // positions.push({ x: 18, y: 26 })
+    // positions.push({ x: 18, y: 27 })
+    // positions.push({ x: 18, y: 28 })
+    // positions.push({ x: 18, y: 29 })
+    for (let i = 0; i < words.length; i++) {
+      // 예: 모든 단어를 x=10에 배치하고, y 좌표는 단어의 인덱스에 따라 증가
+      positions.push({ x: 10, y: i }) // 각 단어마다 y 좌표를 다르게 설정
+    }
+    return positions
   }
 
   const [gridPositions] = useState(createGridPositions())
   const [wordObjects, setWordObjects] = useState<WordObject[]>([])
   const [score, setScore] = useState(0)
   const [currentInputValue, setCurrentInputValue] = useState('')
+
+  // 점수에 따라 gaugeRed의 개수를 계산하는 함수
+  const calculateGaugeColors = () => {
+    const totalGauges = 17 // 전체 게이지 수
+    const redGauges = Math.floor(score / 3) // 3점 당 하나의 gaugeRed
+    const grayGauges = totalGauges - redGauges // 나머지는 gaugeGray
+
+    // gaugeRed와 gaugeGray 배열 생성
+    const gauges = []
+    for (let i = 0; i < redGauges; i++) {
+      gauges.push(<div key={`red-${i}`} className={styles.gaugeRed}></div>)
+    }
+    for (let i = 0; i < grayGauges; i++) {
+      gauges.push(<div key={`gray-${i}`} className={styles.gaugeGray}></div>)
+    }
+
+    return gauges
+  }
 
   useEffect(() => {
     setScore(0)
@@ -102,30 +125,61 @@ function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setWordObjects((currentWords) => {
-        return currentWords
+        let lostWords = 0 // 화면 하단에 도달한 단어의 수를 추적
+        let showAlert = false // 경고 표시 여부
+
+        const updatedWords = currentWords
           .map((word) => {
-            // Y좌표를 업데이트 (예: 매 초마다 1씩 증가)
+            // Y좌표를 업데이트 (예: 매 초마다 0.3씩 증가)
             return { ...word, position: { ...word.position, y: word.position.y + 0.3 } }
           })
           .filter((word) => {
-            // 경계 조건 확인 (여기서는 Y좌표가 40보다 작은 경우만 남김)
-            return word.position.y < 44
+            // 단어가 화면 하단에 도달했는지 확인
+            if (word.position.y >= 10000) {
+              lostWords++ // 화면 하단에 도달한 단어 수 증가
+              if (score === 0) {
+                // 점수가 0인 경우 경고 표시
+                showAlert = true
+              }
+              return false // 화면 하단에 도달한 단어는 필터링
+            }
+            return true
           })
+
+        if (showAlert) {
+          // alert('단어를 놓쳤습니다! 게임 오버!') // 경고 메시지 표시
+        }
+
+        if (lostWords > 0) {
+          // 화면 하단에 도달한 단어가 있으면 점수 감소
+          setScore((prevScore) => Math.max(0, prevScore - lostWords)) // 점수는 음수가 되지 않도록 함
+        }
+
+        return updatedWords
       })
-    }, 1000) // 1초마다 업데이트
+    }, 200) // 1초마다 업데이트
 
     return () => clearInterval(interval) // 컴포넌트 제거 시 인터벌 정리
-  }, [])
+  }, [score]) // score 의존성 추가
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.navbar}>
-          <div>1</div>
+          <div>{score}</div>
           <div>타자 연습 게임</div>
-          <div>1</div>
+          <div className={styles.xBox}>
+            <BsXLg />
+          </div>
         </div>
-        <div className={styles.headerContent}>1</div>
+        <div className={styles.headerContent}>
+          <div className={styles.songTitle}>Only One (Feat.Hash Swan, punchnello)</div>
+          <div className={styles.albumTitle}>브론즈 - 매직스테이션1</div>
+          <div className={styles.scoreGauge}>
+            <div className={styles.phText}>pH:</div>
+            <div className={styles.gaugeBox}>{calculateGaugeColors()} </div>
+          </div>
+        </div>
       </div>
 
       <div className={styles.gameContent}>
@@ -138,7 +192,7 @@ function Home() {
             className={styles.word}
             style={{
               left: `${wordObject.position.x * 4}%`,
-              top: `calc(${wordObject.position.y * (100 / 30)}% - 6rem)`,
+              top: `calc(${wordObject.position.y * (100 / 30)}% - 674rem)`,
             }}
           >
             {wordObject.text}
@@ -154,28 +208,6 @@ function Home() {
         </div>
       </div>
       <div className={styles.footer}>4</div>
-      {/* <div className={styles.wavesBox}>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-        <div className={styles.waves}></div>
-      </div> */}
     </div>
   )
 }

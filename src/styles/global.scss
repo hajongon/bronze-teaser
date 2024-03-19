@@ -4,13 +4,13 @@
 
 html {
   @font-face {
-    font-family: 'IyagiGGC';
-    src: url('../fonts/IyagiGGC.woff') format('woff');
+    font-family: 'DOSMyungjo';
+    src: url('../fonts/DOSMyungjo.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
   }
   font-family:
-    'IyagiGGC',
+    'DOSMyungjo',
     Pretendard Variable,
     -apple-system,
     BlinkMacSystemFont,
@@ -28,7 +28,7 @@ html {
 }
 
 body {
-  font-family: 'IyagiGGC', sans-serif;
+  font-family: 'DOSMyungjo', sans-serif;
   margin: 0 auto;
   font-size: 1.6rem;
   color: C.$gray900;
