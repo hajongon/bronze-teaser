@@ -2,6 +2,8 @@ import { useState, useEffect, KeyboardEvent } from 'react'
 import styles from './Home.module.scss'
 import { words } from '../data/words'
 import { BsXLg } from 'react-icons/bs'
+import AudioPlayer from '../components/AudioPlayer'
+import onlyOne from '../assets/audio/onlyOne.mp3'
 
 // 단어 객체의 타입 정의
 interface WordObject {
@@ -76,6 +78,11 @@ function Home() {
   const [wordObjects, setWordObjects] = useState<WordObject[]>([])
   const [score, setScore] = useState(0)
   const [currentInputValue, setCurrentInputValue] = useState('')
+  const [gameStarted, setGameStarted] = useState(false)
+
+  const startGame = () => {
+    setGameStarted(true)
+  }
 
   // 점수에 따라 gaugeRed의 개수를 계산하는 함수
   const calculateGaugeColors = () => {
@@ -101,7 +108,7 @@ function Home() {
 
   useEffect(() => {
     const newWordObjects = words.map((word, index) => {
-      const position = gridPositions[index] // 무작위로 섞인 위치 중 하나를 선택
+      const position = gridPositions[index]
       console.log('Words count:', words.length)
       console.log('Grid positions count:', gridPositions.length)
       return { text: word, position }
@@ -123,47 +130,51 @@ function Home() {
   }
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setWordObjects((currentWords) => {
-        let lostWords = 0 // 화면 하단에 도달한 단어의 수를 추적
-        let showAlert = false // 경고 표시 여부
+    if (gameStarted) {
+      const interval = setInterval(() => {
+        setWordObjects((currentWords) => {
+          let lostWords = 0 // 화면 하단에 도달한 단어의 수를 추적
+          let showAlert = false // 경고 표시 여부
 
-        const updatedWords = currentWords
-          .map((word) => {
-            // Y좌표를 업데이트 (예: 매 초마다 0.3씩 증가)
-            return { ...word, position: { ...word.position, y: word.position.y + 0.3 } }
-          })
-          .filter((word) => {
-            // 단어가 화면 하단에 도달했는지 확인
-            if (word.position.y >= 10000) {
-              lostWords++ // 화면 하단에 도달한 단어 수 증가
-              if (score === 0) {
-                // 점수가 0인 경우 경고 표시
-                showAlert = true
+          const updatedWords = currentWords
+            .map((word) => {
+              // Y좌표를 업데이트 (예: 매 초마다 0.3씩 증가)
+              return { ...word, position: { ...word.position, y: word.position.y + 0.3 } }
+            })
+            .filter((word) => {
+              // 단어가 화면 하단에 도달했는지 확인
+              if (word.position.y >= 10000) {
+                lostWords++ // 화면 하단에 도달한 단어 수 증가
+                if (score === 0) {
+                  // 점수가 0인 경우 경고 표시
+                  showAlert = true
+                }
+                return false // 화면 하단에 도달한 단어는 필터링
               }
-              return false // 화면 하단에 도달한 단어는 필터링
-            }
-            return true
-          })
+              return true
+            })
 
-        if (showAlert) {
-          // alert('단어를 놓쳤습니다! 게임 오버!') // 경고 메시지 표시
-        }
+          if (showAlert) {
+            // alert('단어를 놓쳤습니다! 게임 오버!') // 경고 메시지 표시
+          }
 
-        if (lostWords > 0) {
-          // 화면 하단에 도달한 단어가 있으면 점수 감소
-          setScore((prevScore) => Math.max(0, prevScore - lostWords)) // 점수는 음수가 되지 않도록 함
-        }
+          if (lostWords > 0) {
+            // 화면 하단에 도달한 단어가 있으면 점수 감소
+            setScore((prevScore) => Math.max(0, prevScore - lostWords)) // 점수는 음수가 되지 않도록 함
+          }
 
-        return updatedWords
-      })
-    }, 200) // 1초마다 업데이트
+          return updatedWords
+        })
+      }, 200)
+      return () => clearInterval(interval) // 컴포넌트 제거 시 인터벌 정리
+    } // 1초마다 업데이트
+  }, [score, gameStarted]) // score 의존성 추가
 
-    return () => clearInterval(interval) // 컴포넌트 제거 시 인터벌 정리
-  }, [score]) // score 의존성 추가
+  console.log(gameStarted)
 
   return (
     <div className={styles.container}>
+      <AudioPlayer src={onlyOne} play={gameStarted} />
       <div className={styles.header}>
         <div className={styles.navbar}>
           <div>{score}</div>
@@ -186,18 +197,26 @@ function Home() {
         <div className={styles.scoreBoard}>
           {/* <div className={styles.score}>점수: {score}</div> */}
         </div>
-        {wordObjects.map((wordObject, index) => (
-          <div
-            key={index}
-            className={styles.word}
-            style={{
-              left: `${wordObject.position.x * 4}%`,
-              top: `calc(${wordObject.position.y * (100 / 30)}% - 674rem)`,
-            }}
-          >
-            {wordObject.text}
+        {gameStarted ? (
+          <div>
+            {wordObjects.map((wordObject, index) => (
+              <div
+                key={index}
+                className={styles.word}
+                style={{
+                  left: `${wordObject.position.x * 4}%`,
+                  top: `calc(${wordObject.position.y * (100 / 30)}% - 674rem)`,
+                }}
+              >
+                {wordObject.text}
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <button className={styles.startButton} onClick={startGame}>
+            놀이를 시작합니다.
+          </button>
+        )}
         <div className={styles.typingControl}>
           <input
             type="text"
@@ -207,7 +226,7 @@ function Home() {
           />
         </div>
       </div>
-      <div className={styles.footer}>4</div>
+      <div className={styles.footer}></div>
     </div>
   )
 }
