@@ -1,4 +1,6 @@
 export const words = [
+  'love',
+  'my',
   'world',
   'the',
   'face',

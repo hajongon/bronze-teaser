@@ -4,29 +4,29 @@
 
 .container {
   @include U.flex-c(column, flex-start, flex-start);
-  width: 100%;
-  height: 100vh; // 전체 뷰포트 높이를 사용
+  width: 1200px;
+  height: 900px;
   overflow: hidden;
 }
 
 .header {
-  width: 100%;
-  padding: 1rem 0 0 0;
+  width: 1200px;
+  padding: 10px 0 0 0;
 }
 
 .navbar {
-  width: 100%;
-  height: 4rem;
+  width: 1200px;
+  height: 40px;
   background-color: C.$blue;
   @include U.flex-c(row, space-between, center);
   color: C.$white;
-  font-size: 2.4rem;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  font-size: 24px;
+  padding-left: 5px;
+  padding-right: 5px;
   .xBox {
     @include U.flex-c(row, center, center);
-    width: 2.7rem;
-    height: 2.7rem;
+    width: 27px;
+    height: 27px;
     background-color: C.$main;
     border-top: 2px solid white;
     border-left: 2px solid white;
@@ -40,11 +40,11 @@
 
 .headerContent {
   @include U.flex-c(row);
-  margin-top: 0.4rem;
-  width: 100%;
-  height: 3.6rem;
+  margin-top: 4px;
+  width: 1200px;
+  height: 40px;
   border: 1px solid black;
-  font-size: 2.4rem;
+  font-size: 24px;
   box-shadow: 1px 1px 0px black;
   border-top: 2px solid white;
   border-left: 2px solid white;
@@ -53,38 +53,36 @@
 
   .songTitle {
     @include U.flex-c(row, center, center);
-    width: 44%;
+    width: 480px;
     border-right: 2px solid black;
-    // padding: 1rem;
   }
   .albumTitle {
     @include U.flex-c(row, center, center);
     color: #f7f193;
-    width: 28%;
+    width: 300px;
     border-left: 2px solid white;
     border-right: 2px solid black;
   }
   .scoreGauge {
     @include U.flex-c(row, center, center);
-    width: 28%;
-    height: 100%;
+    width: 420px;
+    height: 40px;
     border-left: 2px solid white;
-    // border-right: 2px solid black;
     .gaugeBox {
       @include U.flex-c(row, center, center);
-      width: 80%;
-      height: 90%;
+      width: 340px;
+      height: 36px;
       border: 2px solid white;
       .gaugeGray {
-        width: 5.88%;
-        height: 100%;
+        width: 20px;
+        height: 36px;
         border-left: 2px solid rgb(66, 66, 66);
         border-top: 2px solid rgb(66, 66, 66);
         border-right: 2px solid white;
       }
       .gaugeRed {
-        width: 5.88%;
-        height: 100%;
+        width: 20px;
+        height: 36px;
         background-color: #bd1000;
         border-left: 2px solid white;
         border-top: 1px solid white;
@@ -97,31 +95,29 @@
 
 .gameContent {
   flex-grow: 1;
-  // height: 700px;
-  width: 100%;
+  width: 1200px;
   position: relative;
   overflow: hidden;
   @include U.flex-c(column, space-between, center);
 
   .startButton {
-    // width: 24rem;
-    // height: 12rem;
-    padding: 2rem;
+    padding: 20px;
     background-color: C.$blue;
     color: #f7f193;
     border-top: 2px solid white;
     border-left: 2px solid white;
     border-bottom: 2px solid black;
     border-right: 2px solid black;
-    font-size: 2.4rem;
+    font-size: 24px;
+    z-index: 1000;
   }
 
   .scoreBoard {
     @include U.flex-c(column, center, center);
-    width: 100%;
-    height: 10rem;
-    font-size: 2rem;
-    margin-top: 0.1rem;
+    width: 1200px;
+    height: 100px;
+    font-size: 20px;
+    margin-top: 1px;
 
     @include U.flex-c();
     .score {
@@ -129,74 +125,31 @@
     }
   }
 
-  @keyframes moveDown {
-    from {
-      transform: translateY(-100vh);
-    }
-    to {
-      transform: translateY(100vh); // 화면 높이만큼 내려오도록 설정
-    }
-  }
-
   .word {
     position: absolute;
-    // top: -500vh;
-    left: 50%;
-    // transform: translateX(-50%);
-    // animation: moveDown 48s linear infinite;
-    font-size: 2rem;
-    // z-index: 500;
+    // left: 600px;
+    font-size: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 18rem;
-    height: 4rem;
+    height: 40px;
   }
 }
 
 .typingControl {
-  // position: relative;
-  // z-index: 0;
-  // background-color: transparent;
-  width: 100%;
+  width: 1200px;
   @include U.flex-c(column, flex-start, center);
-  height: 4rem;
+  height: 40px;
   input {
-    width: 20rem;
-    font-size: 1.6rem;
-    padding: 0.5rem;
+    width: 200px;
+    font-size: 16px;
+    padding: 5px;
   }
 }
 
 .footer {
-  height: 4rem;
-  width: 100%;
+  height: 40px;
+  width: 1200px;
   background-color: C.$gray;
   z-index: 1000;
-}
-
-.wavesBox {
-  width: 100%;
-  @include U.flex-c(row, flex-start, flex-start);
-  position: absolute;
-  top: calc(100% - 6.5rem);
-  left: 0%;
-}
-
-.waves {
-  width: 5%;
-  height: 50px;
-  clip-path: polygon(
-    56% 8%,
-    69% 4%,
-    83% 0,
-    92% 9%,
-    100% 16%,
-    100% 100%,
-    0 100%,
-    0 16%,
-    20% 14%,
-    40% 11%
-  );
-  background-color: C.$blue;
 }
