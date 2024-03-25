@@ -4,6 +4,7 @@ import { words } from '../data/words'
 import { BsXLg } from 'react-icons/bs'
 import AudioPlayer from '../components/AudioPlayer'
 import onlyOne from '../assets/audio/onlyOne.mp3'
+import { locations } from '../data/locations'
 
 // 단어 객체의 타입 정의
 interface WordObject {
@@ -15,15 +16,14 @@ interface WordObject {
 }
 
 function Home() {
-  const createGridPositions = () => {
-    const positions = []
-    for (let i = 0; i < words.length; i++) {
-      positions.push({ x: 10, y: i * 30 }) // 각 단어마다 y 좌표를 다르게 설정
-    }
-    return positions
-  }
+  // const createGridPositions = () => {
+  //   const positions = []
+  //   for (let i = 0; i < words.length; i++) {
+  //     positions.push({ x: 10, y: i * 30 }) // 각 단어마다 y 좌표를 다르게 설정
+  //   }
+  //   return positions
+  // }
 
-  const [gridPositions] = useState(createGridPositions())
   const [wordObjects, setWordObjects] = useState<WordObject[]>([])
   const [score, setScore] = useState(0)
   const [currentInputValue, setCurrentInputValue] = useState('')
@@ -57,9 +57,10 @@ function Home() {
 
   useEffect(() => {
     const newWordObjects = words.map((word, index) => {
-      const position = gridPositions[index]
-      console.log('Words count:', words.length)
-      console.log('Grid positions count:', gridPositions.length)
+      let position: { x: number; y: number } = locations[index]
+      if (word.length > 10) {
+        position = { x: Math.random() * 500, y: index * 30 }
+      }
       return { text: word, position }
     })
     setWordObjects(newWordObjects)
@@ -71,14 +72,21 @@ function Home() {
       return
     }
     if (gameStarted && event.key === 'Enter') {
-      const value = event.currentTarget.value
-      const index = wordObjects.findIndex((wordObject) => wordObject.text === value)
+      const value = event.currentTarget.value // 입력 값
+
+      // 배열의 각 요소를 확인하여 조건에 맞는 가장 높은 인덱스 찾기
+      const index = wordObjects.reduce((acc, wordObject, idx) => {
+        return wordObject.text === value ? idx : acc
+      }, -1)
+
       if (index > -1) {
-        setWordObjects(wordObjects.filter((_, i) => i !== index))
-        setScore(score + 1)
+        console.log(index)
+        const newArr = wordObjects.filter((_, i) => i !== index)
+        setWordObjects([...newArr]) // 해당 단어를 배열에서 제거
+        setScore(score + 1) // 점수 증가
         event.currentTarget.value = '' // 입력 필드 초기화
       }
-      setCurrentInputValue('')
+      setCurrentInputValue('') // 현재 입력 값 상태 업데이트
     }
   }
 
@@ -119,7 +127,7 @@ function Home() {
 
             return updatedWords
           })
-        }, 300) // 매 0.2초마다 단어 위치 업데이트
+        }, 272) // 매 0.2초마다 단어 위치 업데이트
 
         return () => clearInterval(interval)
       }, 16000) // 15초 후 interval 시작
@@ -181,7 +189,11 @@ function Home() {
           />
         </div>
       </div>
-      <div className={styles.footer}></div>
+      <div className={styles.footer}>
+        <div className={styles.languageBox}>한글-2</div>
+        <div className={styles.footerBox1}></div>
+        <div className={styles.footerBox2}></div>
+      </div>
     </div>
   )
 }
