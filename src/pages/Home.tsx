@@ -1,4 +1,4 @@
-import { useState, useEffect, KeyboardEvent } from 'react'
+import { useState, useEffect, KeyboardEvent, useRef } from 'react'
 import styles from './Home.module.scss'
 import { words } from '../data/words'
 import { BsXLg } from 'react-icons/bs'
@@ -13,24 +13,31 @@ interface WordObject {
     x: number
     y: number
   }
+  isDanger: boolean
+  isFrozen: boolean
+  isLost: boolean
 }
 
 function Home() {
-  // const createGridPositions = () => {
-  //   const positions = []
-  //   for (let i = 0; i < words.length; i++) {
-  //     positions.push({ x: 10, y: i * 30 }) // 각 단어마다 y 좌표를 다르게 설정
-  //   }
-  //   return positions
-  // }
-
   const [wordObjects, setWordObjects] = useState<WordObject[]>([])
   const [score, setScore] = useState(0)
   const [currentInputValue, setCurrentInputValue] = useState('')
   const [gameStarted, setGameStarted] = useState(false)
+  const [showAlert, setShowAlert] = useState(false)
+  const [isGameEnded, setIsGameEnded] = useState(false)
+
+  // useRef를 사용하여 interval과 startDelay 참조를 저장
+  const intervalRef = useRef<number | null>(null)
+  const startDelayRef = useRef<number | null>(null)
 
   const startGame = () => {
     setGameStarted(true)
+    setIsGameEnded(false)
+    setScore(0)
+    // 게임 시작 시에 이전 게임의 interval과 startDelay를 정리합니다.
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (startDelayRef.current) clearTimeout(startDelayRef.current)
+    // setWordObjects(initializeWordObjects()) // 단어 객체들을 초기화하는 로직
   }
 
   // 점수에 따라 gaugeRed의 개수를 계산하는 함수
@@ -51,21 +58,30 @@ function Home() {
     return gauges
   }
 
+  // 게임 시작 시
   useEffect(() => {
     setScore(0)
-  }, [])
-
-  useEffect(() => {
     const newWordObjects = words.map((word, index) => {
       let position: { x: number; y: number } = locations[index]
       if (word.length > 10) {
         position = { x: Math.random() * 500, y: index * 30 }
       }
-      return { text: word, position }
+      return { text: word, position, isDanger: false, isFrozen: false, isLost: false }
     })
     setWordObjects(newWordObjects)
-  }, [])
+  }, [gameStarted])
 
+  // 게임 종료 시
+  useEffect(() => {
+    if (isGameEnded) {
+      setIsGameEnded(false)
+      setScore(0)
+      setShowAlert(false)
+      setGameStarted(false)
+    }
+  }, [isGameEnded])
+
+  // 단어 입력 시
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!gameStarted && event.key === 'Enter') {
       setGameStarted(true)
@@ -80,65 +96,75 @@ function Home() {
       }, -1)
 
       if (index > -1) {
-        console.log(index)
         const newArr = wordObjects.filter((_, i) => i !== index)
         setWordObjects([...newArr]) // 해당 단어를 배열에서 제거
-        setScore(score + 1) // 점수 증가
+        setScore((prevScore) => prevScore + 1)
         event.currentTarget.value = '' // 입력 필드 초기화
       }
       setCurrentInputValue('') // 현재 입력 값 상태 업데이트
     }
   }
 
+  // 단어 위치 조정
   useEffect(() => {
     if (gameStarted) {
-      // 게임 시작 후 15초를 기다린 후 interval 시작
-      const startDelay = setTimeout(() => {
-        const interval = setInterval(() => {
+      startDelayRef.current = setTimeout(() => {
+        intervalRef.current = setInterval(() => {
           setWordObjects((currentWords) => {
-            let lostWords = 0
-            let showAlert = false
-
             const updatedWords = currentWords
               .map((word) => {
+                // 단어의 y값이 특정 구간에 도달하면
+                if (word.position.y >= 8120) {
+                  // 위험 is true
+                  word.isDanger = true
+                }
+                // 단어가 최하단에 도착하면 잠깐 멈춘다.
+                if (!word.isFrozen && word.position.y >= 8230) {
+                  word.isFrozen = true
+                  // 3초 후, 단어 삭제를 위한 속성 변경
+                  setTimeout(() => {
+                    word.isLost = true
+                  }, 3000)
+                }
+                // 단어가 frozen 이면 위치 변경 X
+                if (word.isFrozen) return word
                 return {
                   ...word,
                   position: { ...word.position, y: +(word.position.y + 16) },
                 }
               })
+              //
               .filter((word) => {
-                if (word.position.y >= 10000) {
-                  lostWords++
-                  if (score === 0) {
-                    showAlert = true
-                  }
+                // lost true면 단어 삭제
+                if (word.isLost) {
+                  setScore((prevScore) => prevScore - 1)
                   return false
                 }
                 return true
               })
-
-            if (showAlert) {
-              // 경고 메시지 표시 로직 (주석 처리됨)
-            }
-
-            if (lostWords > 0) {
-              setScore((prevScore) => Math.max(0, prevScore - lostWords * 3))
-            }
-
             return updatedWords
           })
-        }, 272) // 매 0.2초마다 단어 위치 업데이트
-
-        return () => clearInterval(interval)
+        }, 280) // 매 0.2초마다 단어 위치 업데이트
       }, 16000) // 15초 후 interval 시작
 
-      return () => clearTimeout(startDelay) // 컴포넌트 제거 시 timeout 정리
+      return () => {
+        // 컴포넌트 제거 시 또는 의존성 배열에 포함된 상태가 변경될 때 interval과 startDelay를 정리
+        if (intervalRef.current) clearInterval(intervalRef.current)
+        if (startDelayRef.current) clearTimeout(startDelayRef.current)
+      }
     }
-  }, [score, gameStarted]) // 의존성 배열에 score, gameStarted 추가
+  }, [gameStarted])
+
+  useEffect(() => {
+    if (score < 0) {
+      alert('게임이 종료되었습니다.')
+      setIsGameEnded(true)
+    }
+  }, [score])
 
   return (
     <div className={styles.container}>
-      <AudioPlayer src={onlyOne} play={gameStarted} />
+      <AudioPlayer src={onlyOne} play={gameStarted} isGameEnded={isGameEnded} />
       <div className={styles.header}>
         <div className={styles.navbar}>
           <div>{score}</div>
@@ -169,6 +195,7 @@ function Home() {
                 style={{
                   left: `${wordObject.position.x}px`,
                   top: `calc(${wordObject.position.y}px - 7500px)`,
+                  color: wordObject.isDanger ? 'red' : 'black',
                 }}
               >
                 {wordObject.text}
