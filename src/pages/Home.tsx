@@ -23,7 +23,6 @@ function Home() {
   const [score, setScore] = useState(0)
   const [currentInputValue, setCurrentInputValue] = useState('')
   const [gameStarted, setGameStarted] = useState(false)
-  const [showAlert, setShowAlert] = useState(false)
   const [isGameEnded, setIsGameEnded] = useState(false)
 
   // useRef를 사용하여 interval과 startDelay 참조를 저장
@@ -76,7 +75,6 @@ function Home() {
     if (isGameEnded) {
       setIsGameEnded(false)
       setScore(0)
-      setShowAlert(false)
       setGameStarted(false)
     }
   }, [isGameEnded])
