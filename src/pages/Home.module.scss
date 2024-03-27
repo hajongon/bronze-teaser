@@ -127,12 +127,12 @@
 
   .word {
     position: absolute;
-    // left: 600px;
     font-size: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 40px;
+    z-index: 1; /* 추가된 부분 */
   }
 }
 
@@ -140,9 +140,12 @@
   width: 1200px;
   @include U.flex-c(column, flex-start, center);
   height: 40px;
+  z-index: 2; /* 추가된 부분 */
+  margin-bottom: 10px;
   input {
-    width: 200px;
-    font-size: 16px;
+    border: 2px solid black;
+    width: 400px;
+    font-size: 24px;
     padding: 5px;
   }
 }
@@ -150,6 +153,30 @@
 .footer {
   height: 40px;
   width: 1200px;
-  background-color: C.$gray;
+  // background-color: C.$gray;
   z-index: 1000;
+  font-size: 24px;
+  @include U.flex-c(row, start, center);
+
+  div {
+    @include U.flex-c(row, center, center);
+    border-top: 2px solid black;
+    border-left: 2px solid black;
+    border-bottom: 2px solid white;
+    border-right: 2px solid white;
+  }
+
+  .languageBox {
+    height: 40px;
+    width: 100px;
+  }
+
+  .footerBox1 {
+    height: 40px;
+    width: 800px;
+  }
+  .footerBox2 {
+    height: 40px;
+    width: 300px;
+  }
 }

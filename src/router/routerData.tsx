@@ -5,9 +5,6 @@ type RouterElement = {
   path: string
   label: string
   element: React.ReactNode
-  //   onTapBar: boolean
-  //   showTapBar: boolean
-  //   withAuth: boolean
 }
 
 export type TapBarElementType = {
@@ -22,13 +19,21 @@ export const routerData: RouterElement[] = [
     path: '/',
     label: '홈',
     element: <Home />,
-    // showTapBar: true,
-    // withAuth: false,
+  },
+  {
+    id: 2,
+    path: '*',
+    label: '에러',
+    element: (
+      <p>
+        <div>Page Not Found</div>
+        <a href="http://localhost:5173/bronze-teaser/">게임하러 가기</a>
+      </p>
+    ),
   },
 ]
 
 export const TapBarContent: TapBarElementType[] = routerData.reduce((prev, router) => {
-  //   if (!router.onTapBar) return prev
   return [
     ...prev,
     {
