@@ -5,6 +5,9 @@ import { BsXLg } from 'react-icons/bs'
 import AudioPlayer from '../components/AudioPlayer'
 import onlyOne from '../assets/audio/onlyOne.mp3'
 import { locations } from '../data/locations'
+import * as React from 'react'
+import eightBallLogo from '../assets/img/eight-ball-logo.png'
+import keyboardLogo from '../assets/img/keyboard-logo.png'
 
 // 단어 객체의 타입 정의
 interface WordObject {
@@ -16,6 +19,7 @@ interface WordObject {
   isDanger: boolean
   isFrozen: boolean
   isLost: boolean
+  ref: React.RefObject<HTMLDivElement> // ref 추가
 }
 
 function Home() {
@@ -39,6 +43,11 @@ function Home() {
     // setWordObjects(initializeWordObjects()) // 단어 객체들을 초기화하는 로직
   }
 
+  const changeToStartButton = () => {
+    setIsGameEnded(false)
+    setGameStarted(false)
+  }
+
   // 점수에 따라 gaugeRed의 개수를 계산하는 함수
   const calculateGaugeColors = () => {
     const totalGauges = 17 // 전체 게이지 수
@@ -57,34 +66,49 @@ function Home() {
     return gauges
   }
 
+  // 중심값 계산 로직
+  const calculateCenter = (wordObj: WordObject) => {
+    const rect = wordObj.ref.current?.getBoundingClientRect()
+    if (rect) {
+      const centerX = rect.left + rect.width / 2 // 중심값 계산
+      return centerX
+    }
+  }
+
   // 게임 시작 시
   useEffect(() => {
-    setScore(0)
-    const newWordObjects = words.map((word, index) => {
-      let position: { x: number; y: number } = locations[index]
-      if (word.length > 10) {
-        position = { x: Math.random() * 500, y: index * 30 }
-      }
-      return { text: word, position, isDanger: false, isFrozen: false, isLost: false }
-    })
-    setWordObjects(newWordObjects)
+    if (gameStarted) {
+      setScore(0)
+      const newWordObjects = words.map((word, index) => {
+        let position: { x: number; y: number } = locations[index]
+        if (word.length > 10) {
+          position = { x: Math.random() * 500, y: index * 60 }
+        }
+        return {
+          text: word,
+          position,
+          isDanger: false,
+          isFrozen: false,
+          isLost: false,
+          ref: React.createRef<HTMLDivElement>(),
+        }
+      })
+      setWordObjects(newWordObjects)
+    }
   }, [gameStarted])
 
   // 게임 종료 시
   useEffect(() => {
     if (isGameEnded) {
-      setIsGameEnded(false)
+      // setIsGameEnded(false)
       setScore(0)
       setGameStarted(false)
+      setWordObjects([])
     }
   }, [isGameEnded])
 
   // 단어 입력 시
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (!gameStarted && event.key === 'Enter') {
-      setGameStarted(true)
-      return
-    }
     if (gameStarted && event.key === 'Enter') {
       const value = event.currentTarget.value // 입력 값
 
@@ -111,13 +135,25 @@ function Home() {
           setWordObjects((currentWords) => {
             const updatedWords = currentWords
               .map((word) => {
+                const centerX = calculateCenter(word) || word.position.x
                 // 단어의 y값이 특정 구간에 도달하면
-                if (word.position.y >= 8120) {
+                if (word.position.y >= 15480) {
                   // 위험 is true
                   word.isDanger = true
                 }
                 // 단어가 최하단에 도착하면 잠깐 멈춘다.
-                if (!word.isFrozen && word.position.y >= 8230) {
+                if (
+                  !word.isFrozen &&
+                  centerX >= 255 &&
+                  centerX <= 710 &&
+                  word.position.y >= 15536
+                ) {
+                  word.isFrozen = true
+                  setTimeout(() => {
+                    word.isLost = true
+                  }, 3000)
+                }
+                if (!word.isFrozen && word.position.y >= 15583) {
                   word.isFrozen = true
                   // 3초 후, 단어 삭제를 위한 속성 변경
                   setTimeout(() => {
@@ -128,7 +164,7 @@ function Home() {
                 if (word.isFrozen) return word
                 return {
                   ...word,
-                  position: { ...word.position, y: +(word.position.y + 16) },
+                  position: { ...word.position, y: +(word.position.y + 17) },
                 }
               })
               //
@@ -142,8 +178,8 @@ function Home() {
               })
             return updatedWords
           })
-        }, 280) // 매 0.2초마다 단어 위치 업데이트
-      }, 16000) // 15초 후 interval 시작
+        }, 150) // 매 0.2초마다 단어 위치 업데이트
+      }, 14500) // 15초 후 interval 시작
 
       return () => {
         // 컴포넌트 제거 시 또는 의존성 배열에 포함된 상태가 변경될 때 interval과 startDelay를 정리
@@ -154,18 +190,47 @@ function Home() {
   }, [gameStarted])
 
   useEffect(() => {
-    if (score < 0) {
-      alert('게임이 종료되었습니다.')
+    if (score < -5) {
+      // alert('게임이 종료되었습니다.')
+      setGameStarted(false)
       setIsGameEnded(true)
     }
   }, [score])
+
+  useEffect(() => {
+    // Define the handler function within the effect to ensure it has access to the current state
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Check for Enter or Space press
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault() // Prevent default to avoid triggering any unintended behavior
+        if (!gameStarted && !isGameEnded) {
+          startGame()
+        } else if (!gameStarted && isGameEnded) {
+          changeToStartButton()
+        }
+      }
+    }
+
+    // Conditionally add the event listener based on game states
+    if (!gameStarted) {
+      window.addEventListener('keydown', handleKeyPress as any)
+    }
+
+    // Cleanup function to remove the event listener
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress as any)
+    }
+  }, [gameStarted, isGameEnded]) // Depend on gameStarted and isGameEnded to re-attach the listener when needed
 
   return (
     <div className={styles.container}>
       <AudioPlayer src={onlyOne} play={gameStarted} isGameEnded={isGameEnded} />
       <div className={styles.header}>
         <div className={styles.navbar}>
-          <div>{score}</div>
+          <div className={styles.logoBox}>
+            <img src={eightBallLogo} />
+            <img src={keyboardLogo} />
+          </div>
           <div>타자 연습 게임</div>
           <div className={styles.xBox}>
             <BsXLg />
@@ -184,7 +249,7 @@ function Home() {
       <div className={styles.gameContent}>
         <div className={styles.gridLine}></div>
         {/* <div className={styles.scoreBoard}></div> */}
-        {gameStarted ? (
+        {gameStarted && !isGameEnded ? (
           <div>
             {wordObjects.map((wordObject, index) => (
               <div
@@ -192,7 +257,7 @@ function Home() {
                 className={styles.word}
                 style={{
                   left: `${wordObject.position.x}px`,
-                  top: `calc(${wordObject.position.y}px - 7500px)`,
+                  top: `calc(${wordObject.position.y}px - 14963px)`,
                   color: wordObject.isDanger ? 'red' : 'black',
                 }}
               >
@@ -200,11 +265,15 @@ function Home() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : !gameStarted && isGameEnded ? (
+          <button className={styles.endButton} onClick={changeToStartButton}>
+            놀이가 끝났습니다.
+          </button>
+        ) : !gameStarted && !isGameEnded ? (
           <button className={styles.startButton} onClick={startGame}>
             놀이를 시작합니다.
           </button>
-        )}
+        ) : null}
         <div className={styles.typingControl}>
           <input
             type="text"
