@@ -5,6 +5,7 @@ import { BsXLg } from 'react-icons/bs'
 import AudioPlayer from '../components/AudioPlayer'
 import onlyOne from '../assets/audio/onlyOne.mp3'
 import { locations } from '../data/locations'
+import * as React from 'react'
 
 // 단어 객체의 타입 정의
 interface WordObject {
@@ -16,6 +17,7 @@ interface WordObject {
   isDanger: boolean
   isFrozen: boolean
   isLost: boolean
+  ref: React.RefObject<HTMLDivElement> // ref 추가
 }
 
 function Home() {
@@ -57,15 +59,31 @@ function Home() {
     return gauges
   }
 
+  // 중심값 계산 로직
+  const calculateCenter = (wordObj: WordObject) => {
+    const rect = wordObj.ref.current?.getBoundingClientRect()
+    if (rect) {
+      const centerX = rect.left + rect.width / 2 // 중심값 계산
+      return centerX
+    }
+  }
+
   // 게임 시작 시
   useEffect(() => {
     setScore(0)
     const newWordObjects = words.map((word, index) => {
       let position: { x: number; y: number } = locations[index]
       if (word.length > 10) {
-        position = { x: Math.random() * 500, y: index * 30 }
+        position = { x: Math.random() * 500, y: index * 60 }
       }
-      return { text: word, position, isDanger: false, isFrozen: false, isLost: false }
+      return {
+        text: word,
+        position,
+        isDanger: false,
+        isFrozen: false,
+        isLost: false,
+        ref: React.createRef<HTMLDivElement>(),
+      }
     })
     setWordObjects(newWordObjects)
   }, [gameStarted])
@@ -111,13 +129,25 @@ function Home() {
           setWordObjects((currentWords) => {
             const updatedWords = currentWords
               .map((word) => {
+                const centerX = calculateCenter(word) || word.position.x
                 // 단어의 y값이 특정 구간에 도달하면
-                if (word.position.y >= 8120) {
+                if (word.position.y >= 15480) {
                   // 위험 is true
                   word.isDanger = true
                 }
                 // 단어가 최하단에 도착하면 잠깐 멈춘다.
-                if (!word.isFrozen && word.position.y >= 8230) {
+                if (
+                  !word.isFrozen &&
+                  centerX >= 255 &&
+                  centerX <= 710 &&
+                  word.position.y >= 15536
+                ) {
+                  word.isFrozen = true
+                  setTimeout(() => {
+                    word.isLost = true
+                  }, 3000)
+                }
+                if (!word.isFrozen && word.position.y >= 15583) {
                   word.isFrozen = true
                   // 3초 후, 단어 삭제를 위한 속성 변경
                   setTimeout(() => {
@@ -128,7 +158,7 @@ function Home() {
                 if (word.isFrozen) return word
                 return {
                   ...word,
-                  position: { ...word.position, y: +(word.position.y + 16) },
+                  position: { ...word.position, y: +(word.position.y + 17) },
                 }
               })
               //
@@ -142,8 +172,8 @@ function Home() {
               })
             return updatedWords
           })
-        }, 280) // 매 0.2초마다 단어 위치 업데이트
-      }, 16000) // 15초 후 interval 시작
+        }, 150) // 매 0.2초마다 단어 위치 업데이트
+      }, 14500) // 15초 후 interval 시작
 
       return () => {
         // 컴포넌트 제거 시 또는 의존성 배열에 포함된 상태가 변경될 때 interval과 startDelay를 정리
@@ -192,7 +222,7 @@ function Home() {
                 className={styles.word}
                 style={{
                   left: `${wordObject.position.x}px`,
-                  top: `calc(${wordObject.position.y}px - 7500px)`,
+                  top: `calc(${wordObject.position.y}px - 14963px)`,
                   color: wordObject.isDanger ? 'red' : 'black',
                 }}
               >
