@@ -6,6 +6,8 @@ import AudioPlayer from '../components/AudioPlayer'
 import onlyOne from '../assets/audio/onlyOne.mp3'
 import { locations } from '../data/locations'
 import * as React from 'react'
+import eightBallLogo from '../assets/img/eight-ball-logo.png'
+import keyboardLogo from '../assets/img/keyboard-logo.png'
 
 // 단어 객체의 타입 정의
 interface WordObject {
@@ -41,6 +43,11 @@ function Home() {
     // setWordObjects(initializeWordObjects()) // 단어 객체들을 초기화하는 로직
   }
 
+  const changeToStartButton = () => {
+    setIsGameEnded(false)
+    setGameStarted(false)
+  }
+
   // 점수에 따라 gaugeRed의 개수를 계산하는 함수
   const calculateGaugeColors = () => {
     const totalGauges = 17 // 전체 게이지 수
@@ -70,39 +77,38 @@ function Home() {
 
   // 게임 시작 시
   useEffect(() => {
-    setScore(0)
-    const newWordObjects = words.map((word, index) => {
-      let position: { x: number; y: number } = locations[index]
-      if (word.length > 10) {
-        position = { x: Math.random() * 500, y: index * 60 }
-      }
-      return {
-        text: word,
-        position,
-        isDanger: false,
-        isFrozen: false,
-        isLost: false,
-        ref: React.createRef<HTMLDivElement>(),
-      }
-    })
-    setWordObjects(newWordObjects)
+    if (gameStarted) {
+      setScore(0)
+      const newWordObjects = words.map((word, index) => {
+        let position: { x: number; y: number } = locations[index]
+        if (word.length > 10) {
+          position = { x: Math.random() * 500, y: index * 60 }
+        }
+        return {
+          text: word,
+          position,
+          isDanger: false,
+          isFrozen: false,
+          isLost: false,
+          ref: React.createRef<HTMLDivElement>(),
+        }
+      })
+      setWordObjects(newWordObjects)
+    }
   }, [gameStarted])
 
   // 게임 종료 시
   useEffect(() => {
     if (isGameEnded) {
-      setIsGameEnded(false)
+      // setIsGameEnded(false)
       setScore(0)
       setGameStarted(false)
+      setWordObjects([])
     }
   }, [isGameEnded])
 
   // 단어 입력 시
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (!gameStarted && event.key === 'Enter') {
-      setGameStarted(true)
-      return
-    }
     if (gameStarted && event.key === 'Enter') {
       const value = event.currentTarget.value // 입력 값
 
@@ -184,18 +190,47 @@ function Home() {
   }, [gameStarted])
 
   useEffect(() => {
-    if (score < 0) {
-      alert('게임이 종료되었습니다.')
+    if (score < -5) {
+      // alert('게임이 종료되었습니다.')
+      setGameStarted(false)
       setIsGameEnded(true)
     }
   }, [score])
+
+  useEffect(() => {
+    // Define the handler function within the effect to ensure it has access to the current state
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Check for Enter or Space press
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault() // Prevent default to avoid triggering any unintended behavior
+        if (!gameStarted && !isGameEnded) {
+          startGame()
+        } else if (!gameStarted && isGameEnded) {
+          changeToStartButton()
+        }
+      }
+    }
+
+    // Conditionally add the event listener based on game states
+    if (!gameStarted) {
+      window.addEventListener('keydown', handleKeyPress as any)
+    }
+
+    // Cleanup function to remove the event listener
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress as any)
+    }
+  }, [gameStarted, isGameEnded]) // Depend on gameStarted and isGameEnded to re-attach the listener when needed
 
   return (
     <div className={styles.container}>
       <AudioPlayer src={onlyOne} play={gameStarted} isGameEnded={isGameEnded} />
       <div className={styles.header}>
         <div className={styles.navbar}>
-          <div>{score}</div>
+          <div className={styles.logoBox}>
+            <img src={eightBallLogo} />
+            <img src={keyboardLogo} />
+          </div>
           <div>타자 연습 게임</div>
           <div className={styles.xBox}>
             <BsXLg />
@@ -214,7 +249,7 @@ function Home() {
       <div className={styles.gameContent}>
         <div className={styles.gridLine}></div>
         {/* <div className={styles.scoreBoard}></div> */}
-        {gameStarted ? (
+        {gameStarted && !isGameEnded ? (
           <div>
             {wordObjects.map((wordObject, index) => (
               <div
@@ -230,11 +265,15 @@ function Home() {
               </div>
             ))}
           </div>
-        ) : (
+        ) : !gameStarted && isGameEnded ? (
+          <button className={styles.endButton} onClick={changeToStartButton}>
+            놀이가 끝났습니다.
+          </button>
+        ) : !gameStarted && !isGameEnded ? (
           <button className={styles.startButton} onClick={startGame}>
             놀이를 시작합니다.
           </button>
-        )}
+        ) : null}
         <div className={styles.typingControl}>
           <input
             type="text"
