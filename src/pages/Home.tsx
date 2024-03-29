@@ -117,10 +117,10 @@ function Home() {
         return wordObject.text === value ? idx : acc
       }, -1)
 
-      if (index > -1) {
+      if (index > -10) {
         const newArr = wordObjects.filter((_, i) => i !== index)
         setWordObjects([...newArr]) // 해당 단어를 배열에서 제거
-        setScore((prevScore) => prevScore + 1)
+        setScore((prevScore) => prevScore + 2)
         event.currentTarget.value = '' // 입력 필드 초기화
       }
       setCurrentInputValue('') // 현재 입력 값 상태 업데이트
@@ -151,14 +151,14 @@ function Home() {
                   word.isFrozen = true
                   setTimeout(() => {
                     word.isLost = true
-                  }, 3000)
+                  }, 5000)
                 }
                 if (!word.isFrozen && word.position.y >= 15583) {
                   word.isFrozen = true
                   // 3초 후, 단어 삭제를 위한 속성 변경
                   setTimeout(() => {
                     word.isLost = true
-                  }, 3000)
+                  }, 5000)
                 }
                 // 단어가 frozen 이면 위치 변경 X
                 if (word.isFrozen) return word
