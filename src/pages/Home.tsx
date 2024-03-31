@@ -52,14 +52,18 @@ function Home() {
   const calculateGaugeColors = () => {
     const totalGauges = 17 // 전체 게이지 수
     const redGauges = Math.floor(score / 3) // 3점 당 하나의 gaugeRed
-    const grayGauges = totalGauges - redGauges // 나머지는 gaugeGray
+    const grayGauges = redGauges <= 17 ? totalGauges - redGauges : 0 // 나머지는 gaugeGray
 
     // gaugeRed와 gaugeGray 배열 생성
     const gauges = []
     for (let i = 0; i < redGauges; i++) {
+      // 게이지 개수 에러 해결
+      if (i >= 17) return gauges
       gauges.push(<div key={`red-${i}`} className={styles.gaugeRed}></div>)
     }
     for (let i = 0; i < grayGauges; i++) {
+      // 게이지 개수 에러 해결
+      if (i >= 17) return gauges
       gauges.push(<div key={`gray-${i}`} className={styles.gaugeGray}></div>)
     }
 
