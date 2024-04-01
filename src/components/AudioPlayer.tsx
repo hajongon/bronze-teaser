@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface AudioPlayerProps {
   src: string
@@ -8,25 +8,46 @@ interface AudioPlayerProps {
 
 function AudioPlayer({ src, play, isGameEnded }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const [hasEnded, setHasEnded] = useState(false)
 
   useEffect(() => {
-    if (play) {
+    const audio = audioRef.current
+    if (audio) {
+      const handleEnded = () => {
+        setHasEnded(true) // Update state when song ends
+        audio.pause()
+        audio.currentTime = 0 // Reset to start
+      }
+
+      // Add ended event listener
+      audio.addEventListener('ended', handleEnded)
+
+      // Return cleanup function to remove event listener
+      return () => {
+        audio.removeEventListener('ended', handleEnded)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (play && !hasEnded) {
       audioRef.current?.play()
     } else {
       audioRef.current?.pause()
     }
-  }, [play])
+  }, [play, hasEnded])
 
   useEffect(() => {
     if (isGameEnded) {
       if (audioRef.current) {
-        audioRef.current.pause() // 음악을 일시 중지
-        audioRef.current.currentTime = 0 // 재생 위치를 처음으로 설정
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+        setHasEnded(false) // Reset hasEnded state for next game
       }
     }
-  }, [isGameEnded]) // isGameEnded에 대한 의존성 추가
+  }, [isGameEnded])
 
-  return <audio ref={audioRef} src={src} loop />
+  return <audio ref={audioRef} src={src} />
 }
 
 export default AudioPlayer
