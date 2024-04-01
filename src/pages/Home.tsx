@@ -175,7 +175,7 @@ function Home() {
               .filter((word) => {
                 // lost true면 단어 삭제
                 if (word.isLost) {
-                  // setScore((prevScore) => prevScore - 1)
+                  setScore((prevScore) => prevScore - 1)
                   return false
                 }
                 return true
